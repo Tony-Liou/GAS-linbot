@@ -1,0 +1,16 @@
+{
+  "name": "linebot-template",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.ts",
+  "dependencies": {
+    "@line/bot-sdk": "^7.3.0",
+    "@types/google-apps-script": "^1.0.37"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Tony",
+  "license": "ISC"
+}

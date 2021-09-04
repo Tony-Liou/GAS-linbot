@@ -16,14 +16,14 @@ type TextMessage = {
 
 type Message =
     | TextMessage
-  /*| ImageMessage
-  | VideoMessage
-  | AudioMessage
-  | LocationMessage
-  | StickerMessage
-  | ImageMapMessage
-  | TemplateMessage
-  | FlexMessage*/;
+/*| ImageMessage
+| VideoMessage
+| AudioMessage
+| LocationMessage
+| StickerMessage
+| ImageMapMessage
+| TemplateMessage
+| FlexMessage*/;
 
 interface Config {
     channelAccessToken?: string;
@@ -55,7 +55,7 @@ class Client {
             JSON.stringify({
                 messages: toArray(messages),
                 to: to,
-                notificationDisabled: notificationDisabled,
+                notificationDisabled: notificationDisabled
             }),
             //this.generateRequestConfig(), // X-Line-Retry-Key header
         );
@@ -69,7 +69,7 @@ class Client {
         return this.http.post(`${MESSAGING_API_PREFIX}/message/reply`, JSON.stringify({
             messages: toArray(messages),
             replyToken: replyToken,
-            notificationDisabled: notificationDisabled,
+            notificationDisabled: notificationDisabled
         }));
     }
 }
@@ -95,10 +95,11 @@ class HTTPClient {
             contentType: "application/json",
             method: "post" as GoogleAppsScript.URL_Fetch.HttpMethod,
             headers: {
-                Authorization: "Bearer " + this.config.channelAccessToken,
+                Authorization: "Bearer " + this.config.channelAccessToken
             },
             payload: body,
             muteHttpExceptions: true,
+            ...config
         });
     }
 }

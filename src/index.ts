@@ -1,7 +1,8 @@
-import { WebhookRequestBody } from "@line/bot-sdk/dist/types";
+import {WebhookRequestBody} from "@line/bot-sdk/dist/types";
 
-const CHANNEL_ACCESS_TOKEN: string = "rCpuGHQiXxXQPwCyLt2eIBQ2a7jiLybtU32jyoSMJVRw4ROmHNLYItRj127W05KosPbNRSa7lmGTU0PvPLCtbMH90gowmehhA+PpkQjDlMDg/q99XsZMcHzQZMaSlGG1mg8xdG7S8H9uGPXy2jaLDAdB04t89/1O/w1cDnyilFU=";
-const GROUP_ID: string = "";
+const CHANNEL_ACCESS_TOKEN: string = "YOUR ACCESS TOKEN";
+const OWNER_USER_ID: string = "U6927223567093f97c9b8fcf548083f55";
+//const GROUP_ID: string = "";
 
 function doGet(e: GoogleAppsScript.Events.DoGet): GoogleAppsScript.HTML.HtmlOutput | GoogleAppsScript.Content.TextOutput {
     return ContentService.createTextOutput("What are you looking for?")
@@ -10,8 +11,7 @@ function doGet(e: GoogleAppsScript.Events.DoGet): GoogleAppsScript.HTML.HtmlOutp
 
 function doPost(e: GoogleAppsScript.Events.DoPost): GoogleAppsScript.HTML.HtmlOutput | GoogleAppsScript.Content.TextOutput {
     const jsonObj: WebhookRequestBody = JSON.parse(e.postData.contents);
-    console.info(jsonObj);
-    Logger.log(jsonObj);
+    //console.log(jsonObj.events[0].source);
     // Not from Line platform
     if (!("destination" in jsonObj) || !("events" in jsonObj)) {
         return HtmlService.createHtmlOutput();
@@ -19,6 +19,7 @@ function doPost(e: GoogleAppsScript.Events.DoPost): GoogleAppsScript.HTML.HtmlOu
 
     // Line platform connection test
     if (jsonObj.events.length === 0) {
+        console.info("LINE connection test");
         return HtmlService.createHtmlOutput();
     }
 
@@ -32,7 +33,7 @@ function doPost(e: GoogleAppsScript.Events.DoPost): GoogleAppsScript.HTML.HtmlOu
     switch (userMsg) {
         case "!help":
             response = {
-                text: "Help what?",
+                text: "!newguessgame\nStart a new number guessing game.",
                 type: "text"
             };
             break;
@@ -64,10 +65,21 @@ function doPost(e: GoogleAppsScript.Events.DoPost): GoogleAppsScript.HTML.HtmlOu
         const client = new Client({
             channelAccessToken: CHANNEL_ACCESS_TOKEN
         });
-        const { replyToken } = event;
+        const {replyToken} = event;
         const resp = client.replyMessage(replyToken, response);
-        console.log(resp.getResponseCode());
+        console.log("Response code: " + resp.getResponseCode());
     }
 
     return HtmlService.createHtmlOutput();
+}
+
+function sendMessage(msg: string):void {
+    const client = new Client({
+        channelAccessToken: CHANNEL_ACCESS_TOKEN
+    });
+    const resp = client.pushMessage(OWNER_USER_ID, {
+        type: "text",
+        text: msg
+    });
+    console.log(resp.getContentText());
 }

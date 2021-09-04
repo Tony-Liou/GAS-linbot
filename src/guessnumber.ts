@@ -11,9 +11,9 @@ function startNewGuessingGame(min: number = 1, max: number = 100): string {
     const ans = getRandomInt(min, max);
 
     prop.setProperties({
-        CORRECT_NUMBER: ans.toString(),
-        MIN_NUMBER: min.toString(),
-        MAX_NUMBER: max.toString()
+        [CORRECT_NUMBER]: ans.toString(),
+        [MIN_NUMBER]: min.toString(),
+        [MAX_NUMBER]: max.toString()
     });
 
     return `Select a number between ${min}~${max}`;

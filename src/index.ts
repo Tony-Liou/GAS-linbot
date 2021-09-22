@@ -2,6 +2,7 @@ import {WebhookRequestBody} from "@line/bot-sdk/dist/types";
 
 const CHANNEL_ACCESS_TOKEN: string = "YOUR ACCESS TOKEN";
 const OWNER_USER_ID: string = "U6927223567093f97c9b8fcf548083f55";
+
 //const GROUP_ID: string = "";
 
 function doGet(e: GoogleAppsScript.Events.DoGet): GoogleAppsScript.HTML.HtmlOutput | GoogleAppsScript.Content.TextOutput {
@@ -24,25 +25,46 @@ function doPost(e: GoogleAppsScript.Events.DoPost): GoogleAppsScript.HTML.HtmlOu
     }
 
     const event = jsonObj.events[0];
+    // Not implemented yet
     if (!(event.type === "message" && event.message.type === "text")) {
         return HtmlService.createHtmlOutput();
     }
+
+    const enum commands {
+        startNewGame,
+        greet,
+        successfulBinding
+    }
+
+    const commandList = ['!newguessgame', '!greeting', '!successfulbinding'];
 
     const userMsg = event.message.text;
     let response: TextMessage | undefined;
     switch (userMsg) {
         case "!help":
             response = {
-                text: "!newguessgame\nStart a new number guessing game.",
-                type: "text"
+                type: "text",
+                text: `${commandList[commands.startNewGame]}\nStart a new number guessing game.\n${commandList[commands.greet]}\n提示綁定訊息\n${commandList[commands.successfulBinding]}\n綁定成功訊息`
             };
             break;
-        case "!newguessgame":
+        case commandList[commands.startNewGame]:
             const result = startNewGuessingGame();
             response = {
                 type: "text",
                 text: result
             };
+            break;
+        case commandList[commands.greet]:
+            response = {
+                type: "text",
+                text: "請輸入於註冊頁面取得的認證碼："
+            };
+            break;
+        case commandList[commands.successfulBinding]:
+            response = {
+                type: "text",
+                text: "帳號綁定成功！"
+            }
             break;
         default:
             const guessNumberRegex = /^!\d{1,2}$/;
@@ -73,7 +95,7 @@ function doPost(e: GoogleAppsScript.Events.DoPost): GoogleAppsScript.HTML.HtmlOu
     return HtmlService.createHtmlOutput();
 }
 
-function sendMessage(msg: string):void {
+function sendMessage(msg: string): void {
     const client = new Client({
         channelAccessToken: CHANNEL_ACCESS_TOKEN
     });

@@ -1,3 +1,3 @@
 function toArray<T>(maybeArr: T | T[]): T[] {
-    return Array.isArray(maybeArr) ? maybeArr : [maybeArr];
+  return Array.isArray(maybeArr) ? maybeArr : [maybeArr];
 }

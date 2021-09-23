@@ -3,6 +3,7 @@ import {Client, TextMessage} from "./line-client";
 
 const CHANNEL_ACCESS_TOKEN = "YOUR ACCESS TOKEN";
 const OWNER_USER_ID = "U6927223567093f97c9b8fcf548083f55";
+const GUEST_USER_ID = "Ue6424f988543579790fc628655df3ed2";
 
 function doGet(e: GoogleAppsScript.Events.DoGet): GoogleAppsScript.HTML.HtmlOutput | GoogleAppsScript.Content.TextOutput {
   return ContentService.createTextOutput("What are you looking for?")
@@ -11,7 +12,7 @@ function doGet(e: GoogleAppsScript.Events.DoGet): GoogleAppsScript.HTML.HtmlOutp
 
 function doPost(e: GoogleAppsScript.Events.DoPost): GoogleAppsScript.HTML.HtmlOutput | GoogleAppsScript.Content.TextOutput {
   const jsonObj: WebhookRequestBody = JSON.parse(e.postData.contents);
-  //console.log(jsonObj.events[0].source);
+  //console.log(jsonObj);
   // Not from Line platform
   if (!("destination" in jsonObj) || !("events" in jsonObj)) {
     handleInternalRequest(jsonObj);
@@ -96,7 +97,7 @@ function doPost(e: GoogleAppsScript.Events.DoPost): GoogleAppsScript.HTML.HtmlOu
   return HtmlService.createHtmlOutput();
 }
 
-function sendMessage(msg: string): void {
+function sendMessage(msg: string) {
   const client = new Client({
     channelAccessToken: CHANNEL_ACCESS_TOKEN
   });
@@ -120,5 +121,9 @@ function handleInternalRequest(jsonObj: any) {
     return;
   }
 
-  console.log("Broadcast response code: %d", resp.getResponseCode());
+  const statusCode = resp.getResponseCode();
+  console.log("Broadcast response code: %d", statusCode);
+  if (statusCode !== 200) {
+    console.warn("Response message: ", resp.getContentText());
+  }
 }

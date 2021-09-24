@@ -1,33 +1,36 @@
-import {WebhookRequestBody} from "@line/bot-sdk/dist/types";
-import {Client, TextMessage} from "./line-client";
+import {TextMessage, WebhookRequestBody} from "@line/bot-sdk/dist/types";
+import {Message} from "@line/bot-sdk";
+import {Client} from "./line-client";
 
 const CHANNEL_ACCESS_TOKEN = "YOUR ACCESS TOKEN";
 const OWNER_USER_ID = "U6927223567093f97c9b8fcf548083f55";
 const GUEST_USER_ID = "Ue6424f988543579790fc628655df3ed2";
 
 function doGet(e: GoogleAppsScript.Events.DoGet): GoogleAppsScript.HTML.HtmlOutput | GoogleAppsScript.Content.TextOutput {
-  return ContentService.createTextOutput("What are you looking for?")
-    .setMimeType(ContentService.MimeType.TEXT);
+  return HtmlService.createHtmlOutput("<b>What are you looking for?</b>");
 }
 
 function doPost(e: GoogleAppsScript.Events.DoPost): GoogleAppsScript.HTML.HtmlOutput | GoogleAppsScript.Content.TextOutput {
-  const jsonObj: WebhookRequestBody = JSON.parse(e.postData.contents);
-  //console.log(jsonObj);
+  const jsonObj = JSON.parse(e.postData.contents);
+
   // Not from Line platform
-  if (!("destination" in jsonObj) || !("events" in jsonObj)) {
-    handleInternalRequest(jsonObj);
-    return HtmlService.createHtmlOutput();
+  if ("messages" in jsonObj) {
+    internalRequestHandler(jsonObj as { messages: Array<Message> | any });
+    return ContentService.createTextOutput();
+  } else if (!("destination" in jsonObj && "events" in jsonObj)) {
+    return ContentService.createTextOutput();
   }
 
+  const lineJson = jsonObj as WebhookRequestBody;
   // Line platform connection test
-  if (jsonObj.events.length === 0) {
+  if (lineJson.events.length === 0) {
     console.info("LINE connection test");
     return HtmlService.createHtmlOutput();
   }
 
-  console.log("Source: ", jsonObj.events[0].source);
+  console.log("Source: ", lineJson.events[0].source);
 
-  const event = jsonObj.events[0];
+  const event = lineJson.events[0];
   // Not implemented yet
   if (!(event.type === "message" && event.message.type === "text")) {
     return HtmlService.createHtmlOutput();
@@ -38,6 +41,7 @@ function doPost(e: GoogleAppsScript.Events.DoPost): GoogleAppsScript.HTML.HtmlOu
     greet,
     successfulBinding
   }
+
   const commandList = ['!newguessgame', '!greeting', '!successfulbinding'];
 
   const userMsg = event.message.text;
@@ -46,14 +50,41 @@ function doPost(e: GoogleAppsScript.Events.DoPost): GoogleAppsScript.HTML.HtmlOu
     case "!help":
       response = {
         type: "text",
-        text: `${commandList[commands.startNewGame]}\nStart a new number guessing game.\n${commandList[commands.greet]}\n提示綁定訊息\n${commandList[commands.successfulBinding]}\n綁定成功訊息`
+        text: `${commandList[commands.startNewGame]}\nStart a new number guessing game.\n${commandList[commands.greet]}\n提示綁定訊息\n${commandList[commands.successfulBinding]}\n綁定成功訊息`,
+        quickReply: {
+          items: [
+            {
+              type: "action",
+              action: {
+                type: "message",
+                label: "Start a new game",
+                text: commandList[commands.startNewGame]
+              }
+            },
+            {
+              type: "action",
+              action: {
+                type: "message",
+                label: "Rebinding",
+                text: commandList[commands.greet]
+              }
+            },
+            {
+              type: "action",
+              action: {
+                type: "message",
+                label: "Successful binding",
+                text: commandList[commands.successfulBinding]
+              }
+            },
+          ]
+        }
       };
       break;
     case commandList[commands.startNewGame]:
-      const result = startNewGuessingGame();
       response = {
         type: "text",
-        text: result
+        text: startNewGuessingGame()
       };
       break;
     case commandList[commands.greet]:
@@ -71,10 +102,9 @@ function doPost(e: GoogleAppsScript.Events.DoPost): GoogleAppsScript.HTML.HtmlOu
     default:
       const guessNumberRegex = /^!\d{1,2}$/;
       if (guessNumberRegex.test(userMsg)) {
-        const result = guessNumber(userMsg.substring(1));
         response = {
           type: "text",
-          text: result
+          text: guessNumber(userMsg.substring(1))
         };
       } else {
         response = {
@@ -85,14 +115,12 @@ function doPost(e: GoogleAppsScript.Events.DoPost): GoogleAppsScript.HTML.HtmlOu
       break;
   }
 
-  if (response !== undefined) {
-    const client = new Client({
-      channelAccessToken: CHANNEL_ACCESS_TOKEN
-    });
-    const {replyToken} = event;
-    const resp = client.replyMessage(replyToken, response);
-    console.log("Reply response code: %d", resp.getResponseCode());
-  }
+  const client = new Client({
+    channelAccessToken: CHANNEL_ACCESS_TOKEN
+  });
+  const {replyToken} = event;
+  const resp = client.replyMessage(replyToken, response);
+  console.log("Reply response code: %d", resp.getResponseCode());
 
   return HtmlService.createHtmlOutput();
 }
@@ -108,14 +136,14 @@ function sendMessage(msg: string) {
   console.log(resp.getContentText());
 }
 
-function handleInternalRequest(jsonObj: any) {
+function internalRequestHandler(jsonObj: { messages: Array<Message> }) {
   const client = new Client({
     channelAccessToken: CHANNEL_ACCESS_TOKEN
   });
 
   let resp: GoogleAppsScript.URL_Fetch.HTTPResponse | undefined;
   try {
-    resp = client.broadcast(jsonObj);
+    resp = client.broadcast(jsonObj.messages);
   } catch (e) {
     console.error("Internal request error: " + e);
     return;

@@ -1,29 +1,6 @@
+import {Message} from "@line/bot-sdk";
+
 const MESSAGING_API_PREFIX = "https://api.line.me/v2/bot";
-
-export type TextMessage = {
-  type: "text";
-  /**
-   * Message text. You can include the following emoji:
-   *
-   * - Unicode emoji
-   * - LINE original emoji
-   *   ([Unicode codepoint table for LINE original emoji](https://developers.line.biz/media/messaging-api/emoji-list.pdf))
-   *
-   * Max: 2000 characters
-   */
-  text: string;
-};
-
-type Message =
-  | TextMessage
-/*| ImageMessage
-| VideoMessage
-| AudioMessage
-| LocationMessage
-| StickerMessage
-| ImageMapMessage
-| TemplateMessage
-| FlexMessage*/;
 
 interface Config {
   channelAccessToken?: string;

@@ -10,6 +10,8 @@ function startNewGuessingGame(min: number = 1, max: number = 100): string {
   const prop = PropertiesService.getScriptProperties();
   const ans = getRandomInt(min, max);
 
+  min--;
+
   prop.setProperties({
     [CORRECT_NUMBER]: ans.toString(),
     [MIN_NUMBER]: min.toString(),
@@ -19,16 +21,9 @@ function startNewGuessingGame(min: number = 1, max: number = 100): string {
   return `Select a number between ${min}~${max}`;
 }
 
-/** The maximum is exclusive and the minimum is inclusive */
-function getRandomInt(min: number, max: number): number {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min) + min);
-}
-
-function guessNumber(numberText: string): string {
+function pickNumber(numberText: string): string {
   const guessNumber = parseInt(numberText.trim(), 10);
-  if (guessNumber === NaN) {
+  if (isNaN(guessNumber)) {
     return "Please input an integer.";
   }
 
